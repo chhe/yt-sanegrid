@@ -1085,7 +1085,12 @@ sanityApp.filter('duration',
 function () {
 	return function ( d ) {
 
-		var duration = d.split('M'); // PT35M2S
+		if (d.indexOf("M") != -1) {
+			var duration = d.split('M'); // PT35M2S	
+		} else {
+			var duration = ("PT0M" + d.substring(2)).split('M') // PT26S
+		}
+		
 
 		duration[0] = Number(duration[0].slice(2));
 		duration[1] = Number(duration[1].slice(0,-1));
