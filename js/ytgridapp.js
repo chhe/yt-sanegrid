@@ -922,10 +922,6 @@ function ( $q, googleApi ) {
 sanityApp.provider('googleApi', function GoogleApiProvider () {
 	var self = this;
 
-	this.clientId = '950592637430.apps.googleusercontent.com';
-
-	this.apiKey = 'AIzaSyCs378KoxX1cX5_TTa5W65tTG396AkId0A';
-
 	this.scopes = 'https://www.googleapis.com/auth/youtube';
 
 	this.gapi = gapi;
@@ -977,6 +973,14 @@ sanityApp.provider('googleApi', function GoogleApiProvider () {
 			var provider = new GoogleApiProvider();
 
 			provider.q = $q;
+
+			$.getJSON("/yt-sanegrid/client.json")
+			.fail( function ( j, t, e ) {
+				alert( "Error reading client secrets!" );
+			}).done( function ( json ) {
+				provider.clientId = json.clientId;
+				provider.apiKey = json.apiKey;
+			});
 
 			return provider;
 		}
