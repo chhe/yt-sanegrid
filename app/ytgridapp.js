@@ -1,7 +1,7 @@
 var sanityApp = angular.module(
 	"sanityApp",
 	[
-		'ngAnimate',
+	'ngAnimate',
         'ui.bootstrap',
         'ngSocial',
         'localStorage',
