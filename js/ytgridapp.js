@@ -82,17 +82,18 @@ function( $rootScope, googleApi ) {
 
 sanityApp.controller('AppRepeatCtrl',
 [
-'$rootScope', '$scope', '$q', '$store', '$document', 'ytApp', 'googleApi', 'ytData', 'appLoading',
-function ( $rootScope, $scope, $q, $store, $document, ytApp, googleApi, ytData, appLoading ) {
+'$rootScope', '$scope', '$q', '$store', '$localForage', '$document', 'ytApp', 'googleApi', 'ytData', 'appLoading',
+function ( $rootScope, $scope, $q, $store, $localForage, $document, ytApp, googleApi, ytData, appLoading ) {
 
 	$scope.start = true;
 
-	//$store.bind( $rootScope, 'userid', '' );
-	//$store.bind( $rootScope, 'videocache', {} );
-	//$store.bind( $rootScope, 'videos', [] );
-	//$store.bind( $rootScope, 'settings', {} );
-	//$store.bind( $rootScope, 'channelstate', {} );
-	//$store.bind( $rootScope, 'filters', {} );
+    $localForage.bind( $rootScope, 'userid', '' );
+    $localForage.bind( $rootScope, 'settings', {} );
+    $localForage.bind( $rootScope, 'channelstate', {} );
+    $localForage.bind( $rootScope, 'filters', {} );
+
+    $localForage.bind( $scope, 'videos', [] );
+    $localForage.bind( $scope, 'videoids', [] );
 
 	$scope.channels = [];
 	$scope.channelids = [];
@@ -276,25 +277,24 @@ function ( $rootScope, $scope, $q, $store, $document, ytApp, googleApi, ytData, 
 		var existing = $.inArray( video.id, $scope.videoids );
 
 		if ( existing != -1 ) {
-			// TODO: Revisit this later, might be pointless with only uploads
 			// Update existing data
-			/*$.each(
+			$.each(
 				[
-					'id', 'link', 'title', 'img', 'authorid',
+					'id', 'link', 'title', 'thumbnail', 'channelId',
 					'author', 'authorlink', 'published', 'duration'
 				],
 				function ( i, v ) {
-					$scope.videos[eid][v] = details[v];
+					$scope.videos[existing][v] = details[v];
 				}
-			);*/
+			);
 
 			return null;
 		} else {
 			var trash = false;
 
 			if ( $rootScope.filters.channels.hasOwnProperty(details.channelId) ) {
-				$.each( $rootScope.filters.channels[video.channelId].filters, function ( i, v ) {
-					if ( video.title.indexOf( v.string) != -1 ) {
+				$.each( $rootScope.filters.channels[details.channelId].filters, function ( i, v ) {
+					if ( details.title.indexOf( v.string) != -1 ) {
 						trash = true;
 					}
 				});
@@ -480,6 +480,9 @@ function ( $rootScope, $scope, $q, $store, $document, ytApp, googleApi, ytData, 
 	};
 
 	$scope.videoFilter = function (video) {
+        if ( ( (video.muted && ($rootScope.settings.hidemuted == "1")) || (video.watched && ($rootScope.settings.hidewatched == "1")) ) ) {
+            return null;
+        }
 
 		if ( $rootScope.channelstate.hidden[video.channelId] === "1" ) {
 			return null;
@@ -492,6 +495,14 @@ function ( $rootScope, $scope, $q, $store, $document, ytApp, googleApi, ytData, 
 				filtered = true;
 			}
 		});
+
+        if ( filtered ) {
+            $rootScope.filters.caught++;
+
+            video.muted = true;
+
+            return null;
+        }
 
 		return video;
 	};
@@ -623,9 +634,9 @@ function ($scope, $store, $modal) {
 
 sanityApp.controller('SettingsModalInstanceCtrl',
 [
-'$rootScope', '$scope', '$store', '$modalInstance',
-function ($rootScope, $scope, $store, $modalInstance) {
-	//$store.bind( $rootScope, 'filters', {} );
+'$rootScope', '$scope', '$store', '$localForage', '$modalInstance',
+function ($rootScope, $scope, $store, $localForage, $modalInstance) {
+    $localForage.bind( $rootScope, 'filters', {} );
 
 	$scope.cancel = function () {
 		$modalInstance.dismiss('cancel');
@@ -704,24 +715,14 @@ function ($scope, $store, $modal)
 
 sanityApp.controller('FilterModalInstanceCtrl',
 [
-'$rootScope', '$scope', '$store', '$modalInstance', 'item',
-function ($rootScope, $scope, $store, $modalInstance, item)
+'$rootScope', '$scope', '$store', '$localForage', '$modalInstance', 'item',
+function ($rootScope, $scope, $store, $localForage, $modalInstance, item)
 {
-	if ( item.authorid ) {
-		$scope.filter = {
-			title: item.title,
-			channel: item.authorid,
-			author: item.author,
-			authorid: item.authorid
-		};
-	} else {
-		$scope.filter = {
-			title: item.title,
-			channel: item.author,
-			author: item.author,
-			authorid: item.author
-		};
-	}
+	$scope.filter = {
+    	title: item.title,
+        channelId: item.channelId,
+        author: item.author
+	};
 
 
 	$scope.cancel = function () {
@@ -729,17 +730,15 @@ function ($rootScope, $scope, $store, $modalInstance, item)
 	};
 
 	$scope.ok = function (item) {
-		//$store.bind( $rootScope, 'filters', {} );
-
-		if ( $scope.filter.channel.length ) {
-			if ( typeof $rootScope.filters.channels[$scope.filter.channel] == 'undefined' ) {
-				$rootScope.filters.channels[$scope.filter.channel] = {
-					title: $scope.filter.channel,
+		if ( $scope.filter.channelId.length ) {
+			if ( typeof $rootScope.filters.channels[$scope.filter.channelId] == 'undefined' ) {
+				$rootScope.filters.channels[$scope.filter.channelId] = {
+					title: $scope.filter.channelId,
 					filters: []
 				};
 			}
 
-			$rootScope.filters.channels[$scope.filter.channel].filters.push({string:$scope.filter.title});
+			$rootScope.filters.channels[$scope.filter.channelId].filters.push({string:$scope.filter.title});
 		} else {
 			$rootScope.filters.global.push({string:$scope.filter.title});
 		}
@@ -773,8 +772,8 @@ function ($rootScope, $scope, $store, $modal, ytApp) {
 
 sanityApp.controller('UpdatesModalInstanceCtrl',
 [
-'$rootScope', '$scope', '$store', '$modalInstance', 'ytApp',
-function ($rootScope, $scope, $store, $modalInstance, ytApp) {
+'$rootScope', '$scope', '$store', '$localForage', '$modalInstance', 'ytApp',
+function ($rootScope, $scope, $store, $localForage, $modalInstance, ytApp) {
 	$scope.cancel = function () {
 		$modalInstance.dismiss('cancel');
 	};
@@ -1239,9 +1238,13 @@ function () {
 
 sanityApp.config(
 	[
-		'googleApiProvider',
-		function( googleApiProvider ) {
+		'googleApiProvider', '$localForageProvider',
+		function( googleApiProvider, $localForageProvider ) {
 			googleApiProvider.load();
+            $localForageProvider.config({
+                driver      : 'localStorageWrapper', // if you want to force a driver
+                name        : 'sanityApp', // name of the database and prefix for your data
+            });
 		}
 	]
 );
