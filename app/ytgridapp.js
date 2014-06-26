@@ -1,7 +1,7 @@
 var sanityApp = angular.module(
-	"sanityApp",
-	[
-	    'ngAnimate',
+    "sanityApp",
+    [
+        'ngAnimate',
         'ui.bootstrap',
         'ngSocial',
         'localStorage',
@@ -11,7 +11,7 @@ var sanityApp = angular.module(
         'sanityAppFilters',
         'sanityAppProviders',
         'sanityAppServices'
-	]
+    ]
 );
 
 sanityApp.config(
@@ -19,13 +19,13 @@ sanityApp.config(
     'googleApiProvider', '$localForageProvider',
     function( googleApiProvider, $localForageProvider ) {
         googleApiProvider.load();
-    	$localForageProvider.config({
+        $localForageProvider.config({
             driver      : 'localStorageWrapper',
-	    	name        : 'SanityGrid',
-		    version     : 1.0,
-		    storeName   : 'default',
-		    description : 'The grid for people who like to stay sane'
-	    });
+            name        : 'SanityGrid',
+            version     : 1.0,
+            storeName   : 'default',
+            description : 'The grid for people who like to stay sane'
+        });
     }
 ]
 );
