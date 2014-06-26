@@ -7,7 +7,7 @@ sanityAppControllers.controller('AppRepeatCtrl',
 
         $scope.start = true;
 
-        $localForage.bind( $rootScope, 'user', '' );
+        $localForage.bind( $rootScope, 'user', null );
         $localForage.bind( $rootScope, 'settings', {} );
         $localForage.bind( $rootScope, 'channelstate', {} );
         $localForage.bind( $rootScope, 'filters', {} );
@@ -27,7 +27,7 @@ sanityAppControllers.controller('AppRepeatCtrl',
         $scope.trash = [];
         $scope.trashids = [];
 
-        $rootScope.user = null;
+        $rootScope.user = { id: '', name: ''};
 
         var accounts = [];
 
@@ -477,7 +477,7 @@ sanityAppControllers.controller('AppRepeatCtrl',
             if (event.which === 82) $scope.refresh();
         });
 
-        if ( $rootScope.user ) {
+        if ( $rootScope.user.id ) {
             $scope.start = false;
 
             $rootScope.settings.sidebar = false;
