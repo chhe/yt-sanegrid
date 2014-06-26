@@ -1,7 +1,7 @@
 var sanityApp = angular.module(
 	"sanityApp",
 	[
-	'ngAnimate',
+	    'ngAnimate',
         'ui.bootstrap',
         'ngSocial',
         'localStorage',
@@ -20,6 +20,7 @@ sanityApp.config(
     function( googleApiProvider, $localForageProvider ) {
         googleApiProvider.load();
     	$localForageProvider.config({
+            driver      : 'localStorageWrapper',
 	    	name        : 'SanityGrid',
 		    version     : 1.0,
 		    storeName   : 'default',
