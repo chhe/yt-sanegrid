@@ -9,11 +9,20 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
 
     this.q = {};
 
+    $.getJSON("/yt-sanegrid/client.json")
+        .fail( function ( j, t, e ) {
+            alert( "Error reading client secrets!" );
+        }).done( function ( json ) {
+            self.clientId = json.clientId;
+            self.apiKey = json.apiKey;
+            self.gapi.client.setApiKey(self.apiKey);
+        });
+
     this.authorizeToGoogle = function( doImmediate, authCallBack ) {
         this.gapi.auth.authorize(
             {
-                client_id: this.clientId,
-                scope: this.scopes,
+                client_id: self.clientId,
+                scope: self.scopes,
                 immediate: doImmediate
             },
             authCallBack
@@ -30,15 +39,13 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
 
         self.authorizeToGoogle(true,
             function( result ) {
-                if ( result && !result.error ) {
-                    this.gapi.auth.setToken(result);
+                if ( result && !result.error && result.name != 'TypeError') {
                     self.loadGoogleApi(function(response) {
                         deferred.resolve(response);
                     });
                 } else {
                     self.authorizeToGoogle(false, function( result ) {
                         if ( result && !result.error ) {
-                            this.gapi.auth.setToken(result);
                             self.loadGoogleApi(function(response) {
                                 deferred.resolve(response);
                             });
@@ -63,8 +70,6 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
 
     this.load = function() {
         this.gapi.load();
-
-        this.gapi.client.setApiKey(this.apiKey);
     };
 
     this.$get = [
@@ -74,14 +79,6 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
             var provider = new GoogleApiProvider();
 
             provider.q = $q;
-
-            $.getJSON("/yt-sanegrid/client.json")
-                .fail( function ( j, t, e ) {
-                    alert( "Error reading client secrets!" );
-                }).done( function ( json ) {
-                    provider.clientId = json.clientId;
-                    provider.apiKey = json.apiKey;
-                });
 
             return provider;
         }
