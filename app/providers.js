@@ -9,23 +9,43 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
 
     this.q = {};
 
-    this.connect = function()
-    {
-        var deferred = self.q.defer();
-
+    this.authorizeToGoogle = function( doImmediate, authCallBack ) {
         this.gapi.auth.authorize(
             {
                 client_id: this.clientId,
                 scope: this.scopes,
-                immediate: false
+                immediate: doImmediate
             },
+            authCallBack
+        )
+    };
+
+    this.loadGoogleApi = function( callBack ) {
+        this.gapi.client.load('youtube', 'v3', callBack );
+    };
+
+    this.connect = function()
+    {
+        var deferred = self.q.defer();
+
+        self.authorizeToGoogle(true,
             function( result ) {
                 if ( result && !result.error ) {
-                    self.gapi.client.load('youtube', 'v3', function(response) {
+                    this.gapi.auth.setToken(result);
+                    self.loadGoogleApi(function(response) {
                         deferred.resolve(response);
                     });
                 } else {
-                    deferred.reject();
+                    self.authorizeToGoogle(false, function( result ) {
+                        if ( result && !result.error ) {
+                            this.gapi.auth.setToken(result);
+                            self.loadGoogleApi(function(response) {
+                                deferred.resolve(response);
+                            });
+                        } else {
+                            deferred.reject();
+                        }
+                    });
                 }
             }
         );
