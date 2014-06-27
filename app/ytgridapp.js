@@ -18,7 +18,6 @@ sanityApp.config(
 [
     'googleApiProvider', '$localForageProvider',
     function( googleApiProvider, $localForageProvider ) {
-        googleApiProvider.load();
         $localForageProvider.config({
             driver      : 'localStorageWrapper',
             name        : 'SanityGrid',
@@ -26,6 +25,7 @@ sanityApp.config(
             storeName   : 'default',
             description : 'The grid for people who like to stay sane'
         });
+        googleApiProvider.config();
     }
 ]
 );

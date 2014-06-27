@@ -1,29 +1,21 @@
 var sanityAppProviders = angular.module('sanityAppProviders', []);
 
-sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
+function GoogleApi(gapi, clientId, scopes, q) {
+
     var self = this;
 
-    this.scopes = 'https://www.googleapis.com/auth/youtube';
-
     this.gapi = gapi;
-
-    this.q = {};
-
-    $.getJSON("/yt-sanegrid/client.json")
-        .fail( function ( j, t, e ) {
-            alert( "Error reading client secrets!" );
-        }).done( function ( json ) {
-            self.clientId = json.clientId;
-            self.apiKey = json.apiKey;
-            self.gapi.client.setApiKey(self.apiKey);
-        });
+    this.q = q;
+    this.clientId = clientId;
+    this.scopes = scopes;
 
     this.authorizeToGoogle = function( doImmediate, authCallBack ) {
         this.gapi.auth.authorize(
             {
-                client_id: self.clientId,
-                scope: self.scopes,
-                immediate: doImmediate
+                client_id: this.clientId,
+                scope: this.scopes,
+                immediate: doImmediate,
+                authuser: 1
             },
             authCallBack
         )
@@ -68,19 +60,35 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
         return this.connect();
     };
 
-    this.load = function() {
-        this.gapi.load();
+}
+
+sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
+    var self = this;
+
+    this.scopes = 'https://www.googleapis.com/auth/youtube';
+    this.clientId = '';
+    this.apiKey = '';
+    this.gapi = gapi;
+
+    this.config = function() {
+        $.ajax({
+            url: '/yt-sanegrid/client.json',
+            async: false,
+            dataType: 'json',
+            success: function (response) {
+                self.clientId = response.clientId;
+                self.apiKey = response.apiKey;
+                self.gapi.client.setApiKey(self.apiKey);
+            }
+        });
     };
 
     this.$get = [
         '$q',
-        function ( $q )
-        {
-            var provider = new GoogleApiProvider();
+        function ( $q ) {
+            var googleApi = new GoogleApi(self.gapi, self.clientId, self.scopes, $q);
 
-            provider.q = $q;
-
-            return provider;
+            return googleApi;
         }
     ];
 
