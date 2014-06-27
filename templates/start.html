@@ -42,14 +42,25 @@
 
     <hr/>
 
-    <form class="form-inline text-center">
+    <form class="form-inline" ng-show="accounts.length">
         <p>
-            <strong>To get started, connect with your YouTube account:</strong>&nbsp;&nbsp;&nbsp;
+            <strong>Select</strong> an <strong>already connected</strong> YouTube account:
+            <ul>
+                <li ng-repeat="account in accounts track by $index">
+                    <a ng-click="selectUserid(account.id)">{{account.title}}</a>
+                </li>
+            </ul>
+        </p>
+    </form>
+
+    <form class="form-inline cen">
+        <p>
+            <strong>Connect</strong> with a <strong>new</strong> YouTube account:&nbsp;&nbsp;&nbsp;
             <span class="form-group" id="gSignIn">
                 <button
                     class="btn btn-default"
                     type="submit"
-                    ng-click="connect()">
+                    ng-click="connectNewAccount()">
                     Let's go!
                 </button>
             </span>
@@ -62,26 +73,6 @@
         <strong>Don't worry</strong>, nothing is stored on a server because this
         page works completely from (and only stores data in) your browser.
     </p>
-
-    <div id="errors" ng-if="forbidden||notfound||!start">
-        <div class="account-error alert " ng-if="forbidden">
-            <h4>Subscription List Private</h4>
-
-            <p>
-                The account that you entered has their subscription list
-                private. If you own this account, you can go to your privacy
-                settings page at
-                <a ng-href="https://www.youtube.com/account_privacy">
-                    https://www.youtube.com/account_privacy
-                </a>
-                and make it public.</p>
-        </div>
-        <div class="account-error alert" ng-if="notfound">
-            <h4>Account Not Found</h4>
-
-            <p>The account you entered does not exist.</p>
-        </div>
-    </div>
 
     <hr/>
     <p>

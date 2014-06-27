@@ -7,7 +7,6 @@ sanityAppControllers.controller('AppRepeatCtrl',
 
         $scope.start = true;
 
-        $localForage.bind( $rootScope, 'user', null );
         $localForage.bind( $rootScope, 'settings', {} );
         $localForage.bind( $rootScope, 'channelstate', {} );
         $localForage.bind( $rootScope, 'filters', {} );
@@ -27,34 +26,25 @@ sanityAppControllers.controller('AppRepeatCtrl',
         $scope.trash = [];
         $scope.trashids = [];
 
-        $rootScope.user = { id: '', name: ''};
-
-        var accounts = [];
-
-        var initAccount = function () {
+        var initAccount = function ( accountInfo ) {
             $scope.start = false;
 
             $rootScope.settings.sidebar = false;
 
             appLoading.loading();
 
-            mainChannel()
-                .then(function(user) {
-                    $rootScope.user.id = user.id;
-                    $rootScope.user.name = user.name;
+            $rootScope.currentUser.id = accountInfo.id;
+            $rootScope.currentUser.name = accountInfo.title;
 
-                    syncChannels()
-                        .then(function() {
-                            loadVideos()
-                                .then(function(count) {
-                                    // TODO: display count
-                                    appLoading.ready();
-                                });
-                        });
+            syncChannels().then(function() {
+                loadVideos().then(function(count) {
+                    // TODO: display count
+                    appLoading.ready();
                 });
+            });
         };
 
-        var mainChannel = function(page) {
+        var retrieveNewAccountInfo = function(page) {
             var deferred = $q.defer();
 
             if ( typeof page == 'undefined' ) {
@@ -63,10 +53,12 @@ sanityAppControllers.controller('AppRepeatCtrl',
 
             ytData.channels()
                 .then(function(data) {
-                    accounts.push({
-                        id: data.items[0].id,
-                        title: data.items[0].snippet.title
-                    });
+                    if (!$.inArray( data.items[0].id, $rootScope.accounts )) {
+                        $rootScope.accounts.push({
+                            id: data.items[0].id,
+                            title: data.items[0].snippet.title
+                        });
+                    }
 
                     deferred.resolve({
                                         id   : data.items[0].id,
@@ -240,31 +232,6 @@ sanityAppControllers.controller('AppRepeatCtrl',
             }
         };
 
-        var checkList = function() {
-            var len = $scope.videos.length;
-
-            for ( var i=0; i<len; i++ ) {
-                // Upgrade old style list where id was the hash
-                if ( typeof $scope.videos[i].hash == 'undefined' ) {
-                    $scope.videos[i].hash = $scope.videos[i].id;
-                }
-
-                // Remove hashKey if it has been stored by accident
-                if ( typeof $scope.videos[i].$$hashKey != 'undefined' ) {
-                    delete $scope.videos[i].$$hashKey;
-                }
-
-                // Lazy way to prevent dupes
-                $scope.videos[i].id = i;
-
-                // Upgrade old format where we didn't have watched and muted
-                if ( typeof $scope.videos[i].watched == 'undefined' ) {
-                    $scope.videos[i].watched = $scope.videos[i].muted;
-                    $scope.videos[i].muted = false;
-                }
-            }
-        };
-
         var syncChannels = function(page)
         {
             var deferred = $q.defer();
@@ -336,16 +303,7 @@ sanityAppControllers.controller('AppRepeatCtrl',
             return deferred.promise;
         };
 
-        var resetErrors = function () {
-            if ( $scope.forbidden == 1 || $scope.notfound == 1 ) {
-                $scope.forbidden = 0;
-                $scope.notfound = 0;
-            }
-        };
-
         var loadTop = function () {
-            resetErrors();
-
             appLoading.loading();
 
             $rootScope.filters.caught = 0;
@@ -361,13 +319,14 @@ sanityAppControllers.controller('AppRepeatCtrl',
             }
         };
 
-        $scope.selectUserid = function ( q ) {
-            if ( q === false ) {
+        $scope.selectUserid = function ( userId ) {
+            if ( userId === false ) {
                 $scope.start = true;
+                $rootScope.currentUser.id = '';
+                $rootScope.currentUser.name = '';
             } else {
-                initAccount( q );
-
-                //loadTop();
+                $scope.connect( userId );
+                 //loadTop();
             }
         };
 
@@ -423,16 +382,24 @@ sanityAppControllers.controller('AppRepeatCtrl',
             return video;
         };
 
-        $scope.connect = function()
-        {
-            googleApi.authorize()
+        $scope.connectNewAccount = function() {
+            googleApi.authorizeNewAccount()
+                .then(function() {
+                    retrieveNewAccountInfo()
+                        .then(function ( user ) {
+                            initAccount( { id: user.id, title: user.name });
+                            updateSidebar();
+                            //loadTop();
+                        });
+                });
+        };
+
+        $scope.connect = function( userId ) {
+            googleApi.authorize( userId )
                 .then(function(){
-                    initAccount();
-
-                    //checkList();
-
+                    var account = $.grep($rootScope.accounts, function(account){ return account.id == userId; });
+                    initAccount( { id: userId, title: account[0].title } );
                     //loadTop();
-
                     updateSidebar();
                 });
         };
@@ -469,19 +436,15 @@ sanityAppControllers.controller('AppRepeatCtrl',
             if (event.which === 82) $scope.refresh();
         });
 
-        if ( $rootScope.user.id ) {
+        if ( $rootScope.currentUser.id ) {
             $scope.start = false;
 
             $rootScope.settings.sidebar = false;
 
-            googleApi.checkAuth()
+            googleApi.checkAuth( $rootScope.currentUser.id )
                 .then(function(){
-                    initAccount();
-
-                    //checkList();
-
+                    initAccount( { id: $rootScope.currentUser.id, title: $rootScope.currentUser.name } );
                     //loadTop();
-
                     updateSidebar();
                 });
         }

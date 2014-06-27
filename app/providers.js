@@ -9,33 +9,35 @@ function GoogleApi(gapi, clientId, scopes, q) {
     this.clientId = clientId;
     this.scopes = scopes;
 
-    this.authorizeToGoogle = function( doImmediate, authCallBack ) {
-        this.gapi.auth.authorize(
-            {
-                client_id: this.clientId,
-                scope: this.scopes,
-                immediate: doImmediate
-            },
-            authCallBack
-        )
+    this.authorizeToGoogle = function( userId, authCallBack ) {
+        var parameters = {};
+        parameters.client_id = this.clientId;
+        parameters.scope = this.scopes;
+        if (userId) {
+            parameters.immediate = true;
+            parameters.user_id = userId;
+        } else {
+            parameters.immediate = false;
+            parameters.authuser = -1;
+        }
+        this.gapi.auth.authorize(parameters, authCallBack);
     };
 
     this.loadGoogleApi = function( callBack ) {
         this.gapi.client.load('youtube', 'v3', callBack );
     };
 
-    this.connect = function()
-    {
+    this.connect = function( userId ) {
         var deferred = self.q.defer();
 
-        self.authorizeToGoogle(true,
+        self.authorizeToGoogle(userId,
             function( result ) {
                 if ( result && !result.error && result.name != 'TypeError') {
                     self.loadGoogleApi(function(response) {
                         deferred.resolve(response);
                     });
                 } else {
-                    self.authorizeToGoogle(false, function( result ) {
+                    self.authorizeToGoogle(userId, function( result ) {
                         if ( result && !result.error ) {
                             self.loadGoogleApi(function(response) {
                                 deferred.resolve(response);
@@ -51,13 +53,17 @@ function GoogleApi(gapi, clientId, scopes, q) {
         return deferred.promise;
     };
 
-    this.checkAuth = function() {
-        return this.connect();
+    this.checkAuth = function( userId ) {
+        return this.connect( userId );
     };
 
-    this.authorize = function() {
-        return this.connect();
+    this.authorize = function( userId ) {
+        return this.connect( userId );
     };
+
+    this.authorizeNewAccount = function() {
+        return this.connect();
+    }
 
 }
 

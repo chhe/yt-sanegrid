@@ -35,8 +35,15 @@ function googleOnLoadCallback() {
 
 sanityApp.run(
 [
-    '$rootScope', 'googleApi',
-    function( $rootScope, googleApi ) {
+    '$rootScope', 'googleApi', '$localForage',
+    function( $rootScope, googleApi, $localForage ) {
+        $localForage.bind( $rootScope, 'currentUser', null );
+        $localForage.bind( $rootScope, 'accounts', [] );
+
+        $rootScope.currentUser = { id: '', name: '' };
+
+        $rootScope.accounts = [];
+
         $rootScope.apiReady = true;
 
         if ( $.isEmptyObject( $rootScope.settings ) ) {
