@@ -14,8 +14,7 @@ function GoogleApi(gapi, clientId, scopes, q) {
             {
                 client_id: this.clientId,
                 scope: this.scopes,
-                immediate: doImmediate,
-                authuser: 1
+                immediate: doImmediate
             },
             authCallBack
         )
