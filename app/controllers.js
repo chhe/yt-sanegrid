@@ -2,8 +2,8 @@ var sanityAppControllers = angular.module('sanityAppControllers', []);
 
 sanityAppControllers.controller('AppRepeatCtrl',
 [
-    '$rootScope', '$scope', '$q', '$store', '$localForage', '$document', 'ytApp', 'googleApi', 'ytData', 'appLoading',
-    function ( $rootScope, $scope, $q, $store, $localForage, $document, ytApp, googleApi, ytData, appLoading ) {
+    '$rootScope', '$scope', '$q', '$localForage', '$document', 'ytApp', 'googleApi', 'ytData', 'appLoading',
+    function ( $rootScope, $scope, $q, $localForage, $document, ytApp, googleApi, ytData, appLoading ) {
 
         $scope.start = true;
 
@@ -361,14 +361,6 @@ sanityAppControllers.controller('AppRepeatCtrl',
             }
         };
 
-        var migrateOldLS = function() {
-            // Find the old userid
-            // Convert old properties to new
-            // - Thumbnail
-            // - Duration
-            // Sort into right container
-        };
-
         $scope.selectUserid = function ( q ) {
             if ( q === false ) {
                 $scope.start = true;
@@ -499,8 +491,8 @@ sanityAppControllers.controller('AppRepeatCtrl',
 
 sanityAppControllers.controller('SettingsModalCtrl',
     [
-        '$scope', '$store', '$modal',
-        function ($scope, $store, $modal) {
+        '$scope', '$modal',
+        function ($scope, $modal) {
             $scope.open = function () {
                 var modalInstance = $modal.open({
                     templateUrl: 'templates/settings.html',
@@ -516,8 +508,8 @@ sanityAppControllers.controller('SettingsModalCtrl',
 
 sanityAppControllers.controller('SettingsModalInstanceCtrl',
     [
-        '$rootScope', '$scope', '$store', '$localForage', '$modalInstance',
-        function ($rootScope, $scope, $store, $localForage, $modalInstance) {
+        '$rootScope', '$scope', '$localForage', '$modalInstance',
+        function ($rootScope, $scope, $localForage, $modalInstance) {
             $localForage.bind( $rootScope, 'filters', {} );
 
             $scope.cancel = function () {
@@ -574,8 +566,8 @@ sanityAppControllers.controller('SupportModalInstanceCtrl',
 
 sanityAppControllers.controller('FilterModalCtrl',
     [
-        '$scope', '$store', '$modal',
-        function ($scope, $store, $modal)
+        '$scope', '$modal',
+        function ($scope, $modal)
         {
             $scope.open = function (video) {
                 var modalInstance = $modal.open({
@@ -597,8 +589,8 @@ sanityAppControllers.controller('FilterModalCtrl',
 
 sanityAppControllers.controller('FilterModalInstanceCtrl',
     [
-        '$rootScope', '$scope', '$store', '$localForage', '$modalInstance', 'item',
-        function ($rootScope, $scope, $store, $localForage, $modalInstance, item)
+        '$rootScope', '$scope', '$localForage', '$modalInstance', 'item',
+        function ($rootScope, $scope, $localForage, $modalInstance, item)
         {
             $scope.filter = {
                 title: item.title,
@@ -635,8 +627,8 @@ sanityAppControllers.controller('FilterModalInstanceCtrl',
 
 sanityAppControllers.controller('UpdatesModalCtrl',
     [
-        '$rootScope', '$scope', '$store', '$modal', 'ytApp',
-        function ($rootScope, $scope, $store, $modal, ytApp) {
+        '$rootScope', '$scope', '$modal', 'ytApp',
+        function ($rootScope, $scope, $modal, ytApp) {
             $scope.status = $rootScope.status;
 
             $scope.open = function () {
@@ -654,8 +646,8 @@ sanityAppControllers.controller('UpdatesModalCtrl',
 
 sanityAppControllers.controller('UpdatesModalInstanceCtrl',
     [
-        '$rootScope', '$scope', '$store', '$localForage', '$modalInstance', 'ytApp',
-        function ($rootScope, $scope, $store, $localForage, $modalInstance, ytApp) {
+        '$rootScope', '$scope', '$localForage', '$modalInstance', 'ytApp',
+        function ($rootScope, $scope, $localForage, $modalInstance, ytApp) {
             $scope.cancel = function () {
                 $modalInstance.dismiss('cancel');
             };

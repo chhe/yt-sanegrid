@@ -4,7 +4,6 @@ var sanityApp = angular.module(
         'ngAnimate',
         'ui.bootstrap',
         'ngSocial',
-        'localStorage',
         'LocalForageModule',
         'sanityAppControllers',
         'sanityAppDirectives',
