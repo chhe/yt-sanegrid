@@ -126,8 +126,6 @@ sanityAppServices.service('ytData',
             this.get = function ( type, options ) {
                 var deferred = $q.defer();
 
-                googleApi.gapi.client.setApiKey(googleApi.apiKey);
-
                 var request = googleApi.gapi.client.youtube[type].list(options);
 
                 request.execute(function(response) {
