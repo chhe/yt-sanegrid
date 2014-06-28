@@ -37,7 +37,6 @@ sanityApp.run(
 [
     '$rootScope', 'googleApi', '$localForage',
     function( $rootScope, googleApi, $localForage ) {
-        $localForage.bind( $rootScope, 'currentUser', null );
         $localForage.bind( $rootScope, 'accounts', [] );
 
         $rootScope.currentUser = { id: '', name: '' };

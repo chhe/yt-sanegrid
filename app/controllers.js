@@ -26,22 +26,36 @@ sanityAppControllers.controller('AppRepeatCtrl',
         $scope.trash = [];
         $scope.trashids = [];
 
+        var setAndStoreCurrentUser = function ( accountInfo ) {
+            $rootScope.currentUser.id = accountInfo.id;
+            $rootScope.currentUser.name = accountInfo.title;
+            return $localForage.setItem("currentUser", $rootScope.currentUser);
+        };
+
+        var loadCurrentUser = function( fn ) {
+            $localForage.getItem("currentUser", $rootScope.currentUser)
+                .then(function(data) {
+                    $rootScope.currentUser = data;
+                    fn();
+                });
+        };
+
         var initAccount = function ( accountInfo ) {
             $scope.start = false;
 
             $rootScope.settings.sidebar = false;
 
-            appLoading.loading();
+            setAndStoreCurrentUser(accountInfo)
+                .then(function () {
+                    appLoading.loading();
 
-            $rootScope.currentUser.id = accountInfo.id;
-            $rootScope.currentUser.name = accountInfo.title;
-
-            syncChannels().then(function() {
-                loadVideos().then(function(count) {
-                    // TODO: display count
-                    appLoading.ready();
+                    syncChannels().then(function() {
+                        loadVideos().then(function(count) {
+                            // TODO: display count
+                            appLoading.ready();
+                        });
+                    });
                 });
-            });
         };
 
         var retrieveNewAccountInfo = function(page) {
@@ -53,10 +67,13 @@ sanityAppControllers.controller('AppRepeatCtrl',
 
             ytData.channels()
                 .then(function(data) {
-                    if (!$.inArray( data.items[0].id, $rootScope.accounts )) {
+                    var accountId = data.items[0].id;
+                    var accountTitle = data.items[0].snippet.title;
+                    var account = $.grep($rootScope.accounts, function(account){ return account.id == accountId; });
+                    if (account.length == 0) {
                         $rootScope.accounts.push({
-                            id: data.items[0].id,
-                            title: data.items[0].snippet.title
+                            id: accountId,
+                            title: accountTitle
                         });
                     }
 
@@ -322,8 +339,8 @@ sanityAppControllers.controller('AppRepeatCtrl',
         $scope.selectUserid = function ( userId ) {
             if ( userId === false ) {
                 $scope.start = true;
-                $rootScope.currentUser.id = '';
-                $rootScope.currentUser.name = '';
+
+                setAndStoreCurrentUser( { id: '', title: ''} );
             } else {
                 $scope.connect( userId );
                  //loadTop();
@@ -436,18 +453,21 @@ sanityAppControllers.controller('AppRepeatCtrl',
             if (event.which === 82) $scope.refresh();
         });
 
-        if ( $rootScope.currentUser.id ) {
-            $scope.start = false;
 
-            $rootScope.settings.sidebar = false;
+        loadCurrentUser(function() {
+            if ( $rootScope.currentUser.id && $rootScope.currentUser.name ) {
+                $scope.start = false;
 
-            googleApi.checkAuth( $rootScope.currentUser.id )
-                .then(function(){
-                    initAccount( { id: $rootScope.currentUser.id, title: $rootScope.currentUser.name } );
-                    //loadTop();
-                    updateSidebar();
-                });
-        }
+                $rootScope.settings.sidebar = false;
+
+                googleApi.checkAuth( $rootScope.currentUser.id )
+                    .then(function(){
+                        initAccount( { id: $rootScope.currentUser.id, title: $rootScope.currentUser.name } );
+                        //loadTop();
+                        updateSidebar();
+                    });
+            }
+        });
     }
 ]
 );
