@@ -1,5 +1,15 @@
 var sanityAppServices = angular.module('sanityAppServices', []);
 
+sanityAppServices.service('userService',
+[
+
+]);
+
+sanityAppServices.service('accountService',
+[
+
+]);
+
 // From: http://jsfiddle.net/lrlopez/dFeuf/
 sanityAppServices.service('timeAgoService',
     function($timeout) {
