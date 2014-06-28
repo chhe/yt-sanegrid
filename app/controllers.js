@@ -33,9 +33,12 @@ sanityAppControllers.controller('AppRepeatCtrl',
         };
 
         var loadCurrentUser = function( fn ) {
-            $localForage.getItem("currentUser", $rootScope.currentUser)
+            $localForage.getItem("currentUser")
                 .then(function(data) {
-                    $rootScope.currentUser = data;
+                    if (data) {
+                        $rootScope.currentUser.id = data.id;
+                        $rootScope.currentUser.name = data.name;
+                    }
                     fn();
                 });
         };
@@ -336,6 +339,21 @@ sanityAppControllers.controller('AppRepeatCtrl',
             }
         };
 
+        $scope.storeClientSecrets = function() {
+            $localForage.setItem("clientSecrets", $rootScope.clientSecrets);
+            if ($rootScope.clientSecrets.apiKey && $rootScope.clientSecrets.clientId) {
+                $rootScope.clientSecretsPresent = true;
+            } else {
+                $rootScope.clientSecretsPresent = false;
+            }
+        }
+
+        $scope.resetClientSecrets = function() {
+            $rootScope.clientSecrets.apiKey = '';
+            $rootScope.clientSecrets.clientId = '';
+            $scope.storeClientSecrets();
+        }
+
         $scope.selectUserid = function ( userId ) {
             if ( userId === false ) {
                 $scope.start = true;
@@ -453,9 +471,14 @@ sanityAppControllers.controller('AppRepeatCtrl',
             if (event.which === 82) $scope.refresh();
         });
 
+        if ($rootScope.clientSecrets.apiKey && $rootScope.clientSecrets.apiKey) {
+            $rootScope.clientSecretsPresent = true;
+        } else {
+            $rootScope.clientSecretsPresent = false;
+        }
 
         loadCurrentUser(function() {
-            if ( $rootScope.currentUser.id && $rootScope.currentUser.name ) {
+            if ($scope.clientSecretsPresent && $rootScope.currentUser.id && $rootScope.currentUser.name ) {
                 $scope.start = false;
 
                 $rootScope.settings.sidebar = false;
@@ -468,6 +491,7 @@ sanityAppControllers.controller('AppRepeatCtrl',
                     });
             }
         });
+
     }
 ]
 );

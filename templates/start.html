@@ -48,30 +48,82 @@
 
     <hr/>
 
-    <form class="form-inline" ng-show="accounts.length">
+    <div id="clientSecrets"
+         class="ng-cloak"
+         ng-if="!clientSecretsPresent"
+         ng-cloak>
         <p>
-            <strong>Select</strong> an <strong>already connected</strong> YouTube account:
+            <strong>Client secrets are missing!</strong>
+        </p>
+        <p>
+            Please supply the following information:
+        </p>
+        <form name="clientSecretsForm" novalidate>
+            <label for="clientSecretApiKey">API-Key</label>
+            <input type="text" class="form-control" name="clientSecretApiKey" id="clientSecretApiKey" ng-model="clientSecrets.apiKey" required />
+            <label for="clientSecretClientId">Client-ID</label>
+            <input type="text" class="form-control" name="clientSecretClientId" id="clientSecretClientId" ng-model="clientSecrets.clientId" required />
+            <span class="form-group">
+                <button
+                        type="submit"
+                        ng-disabled="clientSecretsForm.$invalid"
+                        ng-click="storeClientSecrets()">
+                    Save!
+                </button>
+            </span>
+        </form>
+    </div>
+
+    <div id="resetClientSecrets"
+         class="ng-cloak"
+         ng-if="clientSecretsPresent"
+         ng-cloak>
+        <p>
+            <strong>Client secrets are missing!</strong>
+        </p>
+        <p>
+            <strong>You can reset them by pressing this button</strong>
+        </p>
+        <form>
+            <span class="form-group">
+                <button
+                        type="submit"
+                        ng-disabled="clientSecretsForm.$invalid"
+                        ng-click="resetClientSecrets()">
+                    Reset client secrets!
+                </button>
+            </span>
+        </form>
+    </div>
+
+    <div id="accounts"
+        ng-if="clientSecretsPresent"
+        ng-cloak>
+        <form class="form-inline" ng-show="accounts.length">
+            <p>
+                <strong>Select</strong> an <strong>already connected</strong> YouTube account:
             <ul>
                 <li ng-repeat="account in accounts track by $index">
                     <a ng-click="selectUserid(account.id)">{{account.title}}</a>
                 </li>
             </ul>
-        </p>
-    </form>
+            </p>
+        </form>
 
-    <form class="form-inline cen">
-        <p>
-            <strong>Connect</strong> with a <strong>new</strong> YouTube account:&nbsp;&nbsp;&nbsp;
+        <form class="form-inline cen">
+            <p>
+                <strong>Connect</strong> with a <strong>new</strong> YouTube account:&nbsp;&nbsp;&nbsp;
             <span class="form-group" id="gSignIn">
                 <button
-                    class="btn btn-default"
-                    type="submit"
-                    ng-click="connectNewAccount()">
+                        class="btn btn-default"
+                        type="submit"
+                        ng-click="connectNewAccount()">
                     Let's go!
                 </button>
             </span>
-        </p>
-    </form>
+            </p>
+        </form>
+    </div>
 
     <hr/>
 

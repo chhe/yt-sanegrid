@@ -75,22 +75,18 @@ sanityAppProviders.provider('googleApi', function GoogleApiProvider () {
     this.apiKey = '';
     this.gapi = gapi;
 
-    this.config = function() {
-        $.ajax({
-            url: '/yt-sanegrid/client.json',
-            async: false,
-            dataType: 'json',
-            success: function (response) {
-                self.clientId = response.clientId;
-                self.apiKey = response.apiKey;
-                self.gapi.client.setApiKey(self.apiKey);
-            }
-        });
+    this.config = function( clientSecrets ) {
+        self.clientId = clientSecrets.clientId;
+        self.apiKey = clientSecrets.apiKey;
+        self.gapi.client.setApiKey(self.apiKey);
     };
 
     this.$get = [
-        '$q',
-        function ( $q ) {
+        '$q', '$rootScope',
+        function ( $q, $rootScope ) {
+
+            self.config($rootScope.clientSecrets);
+
             var googleApi = new GoogleApi(self.gapi, self.clientId, self.scopes, $q);
 
             return googleApi;
